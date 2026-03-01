@@ -15,5 +15,5 @@
   "requirements": [
     "msmart-ng @ git+https://github.com/TurboLed/midea-msmart.git@main"
   ],
-  "version": "2026.2.1"
+  "version": "2026.2.4"
 }

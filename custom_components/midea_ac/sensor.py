@@ -59,20 +59,19 @@ async def async_setup_entry(
             PERCENTAGE,
             "indoor_humidity",
         ))
-        
-    entities.append(MideaSensor(
+    entities.append(MideaNewSensor(
+        coordinator,
+        "outdoor_fan_speed",
+        None,
+        "",
+        "Outdoor fan speed",
+    ))        
+    entities.append(MideaNewSensor(
         coordinator,
         "defrost",
         None,
         "",
-        "defrost",
-    ))
-    entities.append(MideaSensor(
-        coordinator,
-        "defrost",
-        SensorDeviceClass.HUMIDITY,
-        PERCENTAGE,
-        "defrost2",
+        "Defrost",
     ))
     # Only add energy sensors if device supports energy requests
     if hasattr(device, "enable_energy_usage_requests"):
@@ -149,7 +148,7 @@ class MideaSensor(MideaCoordinatorEntity, SensorEntity):
         self._state_class = state_class
         self._unit = unit
         self._attr_translation_key = translation_key
-
+        
     @property
     def device_info(self) -> dict:
         """Return info for device registry."""
@@ -196,7 +195,15 @@ class MideaSensor(MideaCoordinatorEntity, SensorEntity):
         """Return the current native value."""
         return getattr(self._device, self._prop, None)
 
-
+class MideaNewSensor(MideaSensor):
+    def __init__(self,
+                 *args,
+                 **kwargs) -> None:
+        MideaSensor.__init__(self, *args, **kwargs)
+        
+        self._attr_name = self._attr_translation_key
+        self._attr_translation_key = None
+        
 class MideaEnergySensor(MideaSensor):
     """Energy sensor class for Midea AC."""
 
