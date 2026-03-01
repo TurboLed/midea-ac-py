@@ -59,20 +59,19 @@ async def async_setup_entry(
             PERCENTAGE,
             "indoor_humidity",
         ))
-        
+    entities.append(MideaSensor(
+        coordinator,
+        "outdoor_fan_speed",
+        None,
+        "",
+        "",
+    ))        
     entities.append(MideaSensor(
         coordinator,
         "defrost",
         None,
         "",
-        "defrost",
-    ))
-    entities.append(MideaSensor(
-        coordinator,
-        "defrost",
-        SensorDeviceClass.HUMIDITY,
-        PERCENTAGE,
-        "defrost2",
+        "",
     ))
     # Only add energy sensors if device supports energy requests
     if hasattr(device, "enable_energy_usage_requests"):
