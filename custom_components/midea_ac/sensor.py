@@ -7,7 +7,7 @@ from homeassistant.components.sensor import (SensorDeviceClass, SensorEntity,
                                              SensorStateClass)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (PERCENTAGE, UnitOfEnergy, UnitOfPower,
-                                 UnitOfTemperature)
+                                 UnitOfTemperature, UnitOfFrequency, UnitOfElectricCurrent, UnitOfElectricPotential)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from msmart.utils import MideaIntEnum
@@ -72,6 +72,55 @@ async def async_setup_entry(
         None,
         "",
         "Defrost",
+    ))
+    entities.append(MideaNewSensor(
+        coordinator,
+        "compressor_frequency",
+        SensorDeviceClass.FREQUENCY,
+        UnitOfFrequency.HERTZ,
+        "Commpressor Frequency",
+    ))
+    entities.append(MideaNewSensor(
+        coordinator,
+        "outdoor_unit_total_current",
+        SensorDeviceClass.CURRENT,
+        UnitOfElectricCurrent.AMPERE,
+        "Current",
+    ))
+    entities.append(MideaNewSensor(
+        coordinator,
+        "outdoor_unit_voltage",
+        SensorDeviceClass.VOLTAGE,
+        UnitOfElectricPotential.VOLT,
+        "Voltage",
+    ))
+    entities.append(MideaNewSensor(
+        coordinator,
+        "T2",
+        SensorDeviceClass.TEMPERATURE,
+        UnitOfTemperature.CELSIUS,
+        "Indoor coil temperature (T2)",
+    ))
+    entities.append(MideaNewSensor(
+        coordinator,
+        "T3",
+        SensorDeviceClass.TEMPERATURE,
+        UnitOfTemperature.CELSIUS,
+        "Outdoor coil temperature (T3)",
+    ))
+    entities.append(MideaNewSensor(
+        coordinator,
+        "TP",
+        SensorDeviceClass.TEMPERATURE,
+        UnitOfTemperature.CELSIUS,
+        "Discharge temperature (TP)",
+    ))
+    entities.append(MideaNewSensor(
+        coordinator,
+        "indoor_fan_speed",
+        None,
+        "",
+        "Indoor fan speed",
     ))
     # Only add energy sensors if device supports energy requests
     if hasattr(device, "enable_energy_usage_requests"):
