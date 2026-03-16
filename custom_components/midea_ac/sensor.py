@@ -66,9 +66,9 @@ async def async_setup_entry(
         "",
         "Outdoor fan speed",
     ))        
-    entities.append(MideaNewSensor(
+    entities.append(MideaBoolSensor(
         coordinator,
-        "defrost",
+        "defrost_active",
         None,
         "",
         "Defrost",
@@ -252,7 +252,23 @@ class MideaNewSensor(MideaSensor):
         
         self._attr_name = self._attr_translation_key
         self._attr_translation_key = None
+        self._attr_has_entity_name = False
+
+class MideaBoolSensor(MideaSensor):
+    def __init__(self,
+                 *args,
+                 **kwargs) -> None:
+        MideaNewSensor.__init__(self, *args, **kwargs)
         
+    @property
+    def native_value(self) -> int | None:
+        """Return the current native value."""
+        state = getattr(self._device, self._prop, None)
+        if state:
+            return 1
+        else:
+            return 0
+
 class MideaEnergySensor(MideaSensor):
     """Energy sensor class for Midea AC."""
 
