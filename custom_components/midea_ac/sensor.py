@@ -122,6 +122,13 @@ async def async_setup_entry(
         "",
         "Indoor fan speed",
     ))
+    entities.append(MideaNewSensor(
+        coordinator,
+        "outdoor_unit_power",
+        SensorDeviceClass.POWER,
+        UnitOfPower.WATT,
+        "Power",
+    ))
     # Only add energy sensors if device supports energy requests
     if hasattr(device, "enable_energy_usage_requests"):
         def _get_energy_config(key: str) -> tuple[EnergyFormat, float]:
