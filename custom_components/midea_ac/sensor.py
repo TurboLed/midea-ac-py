@@ -129,6 +129,13 @@ async def async_setup_entry(
         UnitOfPower.WATT,
         "Power",
     ))
+    entities.append(MideaNewSensor(
+        coordinator,
+        "louver_angle",
+        None,
+        "",
+        "Louver angle",
+    ))
     # Only add energy sensors if device supports energy requests
     if hasattr(device, "enable_energy_usage_requests"):
         def _get_energy_config(key: str) -> tuple[EnergyFormat, float]:
