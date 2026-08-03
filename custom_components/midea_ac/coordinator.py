@@ -36,7 +36,8 @@ class MideaDeviceUpdateCoordinator(DataUpdateCoordinator, Generic[MideaDevice]):
         self._lock = Lock()
         self._proxy: MideaDeviceProxy[MideaDevice] = MideaDeviceProxy(device)
         self._energy_sensors = 0
-        self._group5_entities = 0
+        self._group_entities = dict.fromkeys([1, 2, 5, 7, 11], 0)
+        
 
     async def _async_update_data(self) -> None:
         """Update the device data."""
@@ -79,28 +80,28 @@ class MideaDeviceUpdateCoordinator(DataUpdateCoordinator, Generic[MideaDevice]):
         self._proxy.set_direct(
             "enable_energy_usage_requests", self._energy_sensors > 0)
 
-    def register_group5_entity(self) -> None:
-        """Record that a group5 data entity is active."""
+    def register_group_entity(self, group: int) -> None:
+        """Record that a group data entity is active."""
 
-        if not hasattr(self._proxy, "enable_group5_data_requests"):
-            raise TypeError("Device does not support group 5 data.")
+        if not hasattr(self._proxy, f"enable_group{group}_data_requests"):
+            raise TypeError(f"Device does not support group {group} data.")
 
-        self._group5_entities += 1
+        self._group_entities[group] += 1
 
         # Enable requests
-        self._proxy.set_direct("enable_group5_data_requests", True)
+        self._proxy.set_direct(f"enable_group{group}_data_requests", True)
 
-    def unregister_group5_entity(self) -> None:
+    def unregister_group_entity(self, group: int) -> None:
         """Record that a group5 data entity is inactive."""
 
-        if not hasattr(self._proxy, "enable_group5_data_requests"):
-            raise TypeError("Device does not support group 5 data.")
+        if not hasattr(self._proxy, f"enable_group{group}_data_requests"):
+            raise TypeError(f"Device does not support group {group} data.")
 
-        self._group5_entities -= 1
+        self._group_entities[group] -= 1
 
         # Disable requests if last entity
         self._proxy.set_direct(
-            "enable_group5_data_requests", self._group5_entities > 0)
+            f"enable_group{group}_data_requests", self._group_entities[group] > 0)
 
 
 class MideaCoordinatorEntity(CoordinatorEntity[MideaDeviceUpdateCoordinator], Generic[MideaDevice]):
@@ -118,21 +119,23 @@ class MideaCoordinatorEntity(CoordinatorEntity[MideaDeviceUpdateCoordinator], Ge
         return self._device.online
 
 
-class MideaGroup5Entity(MideaCoordinatorEntity):
-    """Entity that relies on Group5 data."""
+class MideaGroupEntity(MideaCoordinatorEntity):
+    """Entity that relies on Group data."""
+    def __init__(self, group: int) -> None:
+        self._group = group
 
     async def async_added_to_hass(self) -> None:
         """Run when entity about to be added to hass."""
         # Call super method to ensure lifecycle is properly handled
         await super().async_added_to_hass()
 
-        # Register group 5 sensor with coordinator
-        self.coordinator.register_group5_entity()
+        # Register group sensor with coordinator
+        self.coordinator.register_group_entity(self._group)
 
     async def async_will_remove_from_hass(self) -> None:
         """Run when entity will be removed from hass."""
         # Call super method to ensure lifecycle is properly handled
         await super().async_will_remove_from_hass()
 
-        # Unregister group5 sensor with coordinator
-        self.coordinator.unregister_group5_entity()
+        # Unregister group sensor with coordinator
+        self.coordinator.unregister_group_entity(self._group)

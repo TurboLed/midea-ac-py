@@ -10,9 +10,9 @@ from homeassistant.core import HomeAssistant
 from msmart.device import AirConditioner as AC
 from msmart.lan import _LanProtocol
 
-from custom_components.midea_ac.binary_sensor import MideaGroup5BinarySensor
+from custom_components.midea_ac.binary_sensor import MideaGroupBinarySensor
 from custom_components.midea_ac.coordinator import MideaDeviceUpdateCoordinator
-from custom_components.midea_ac.sensor import MideaGroup5Sensor
+from custom_components.midea_ac.sensor import MideaGroupSensor
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -202,14 +202,16 @@ async def test_group5_entity_request_enable(
 
     # Create entities
     entities = [
-        MideaGroup5Sensor(
+        MideaGroupSensor(
+            5,
             coordinator,
             "outdoor_fan_speed",
             None,
             None,
             "outdoor_fan_speed",
         ),
-        MideaGroup5BinarySensor(
+        MideaGroupBinarySensor(
+            5,
             coordinator,
             "defrost_active",
             None,
@@ -222,17 +224,17 @@ async def test_group5_entity_request_enable(
         await entity.async_added_to_hass()
 
     # Verify group 5 requests are enabled when entity is added to HA
-    assert coordinator._group5_entities == len(entities)
+    assert coordinator._group_entities[5] == len(entities)
     assert device.enable_group5_data_requests == True
 
     # Remove 1 entity from HA
     await entities[0].async_will_remove_from_hass()
-    assert coordinator._group5_entities == 1
+    assert coordinator._group_entities[5] == 1
     assert device.enable_group5_data_requests == True
 
     # Verify group 5 requests are disabled when last entity is removed
     await entities[1].async_will_remove_from_hass()
-    assert coordinator._group5_entities == 0
+    assert coordinator._group_entities[5] == 0
     assert device.enable_group5_data_requests == False
 
     await coordinator.async_shutdown()

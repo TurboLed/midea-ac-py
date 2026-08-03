@@ -12,7 +12,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
 from .coordinator import (MideaCoordinatorEntity, MideaDeviceUpdateCoordinator,
-                          MideaGroup5Entity)
+                          MideaGroupEntity)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -47,13 +47,23 @@ async def async_setup_entry(
                                           entity_category=EntityCategory.DIAGNOSTIC,
                                           ))
 
+    if hasattr(device, "water_pump_running") and hasattr(device, "enable_group2_data_requests"):
+        entities.append(MideaGroupBinarySensor(2,
+                                               coordinator,
+                                               "water_pump_running",
+                                               BinarySensorDeviceClass.RUNNING,
+                                               "water_pump_running",
+                                               entity_category=EntityCategory.DIAGNOSTIC,
+                                               ))
+
     if hasattr(device, "defrost_active") and hasattr(device, "enable_group5_data_requests"):
-        entities.append(MideaGroup5BinarySensor(coordinator,
-                                                "defrost_active",
-                                                BinarySensorDeviceClass.RUNNING,
-                                                "defrost",
-                                                entity_category=EntityCategory.DIAGNOSTIC,
-                                                ))
+        entities.append(MideaGroupBinarySensor(5,
+                                               coordinator,
+                                               "defrost_active",
+                                               BinarySensorDeviceClass.RUNNING,
+                                               "defrost",
+                                               entity_category=EntityCategory.DIAGNOSTIC,
+                                               ))
     add_entities(entities)
 
 
@@ -66,7 +76,8 @@ class MideaBinarySensor(MideaCoordinatorEntity, BinarySensorEntity):
                  device_class: BinarySensorDeviceClass,
                  translation_key: str | None = None,
                  *,
-                 entity_category: EntityCategory = None) -> None:
+                 entity_category: EntityCategory = None,
+                 **kwargs) -> None:
         MideaCoordinatorEntity.__init__(self, coordinator)
 
         self._prop = prop
@@ -109,14 +120,16 @@ class MideaBinarySensor(MideaCoordinatorEntity, BinarySensorEntity):
         return getattr(self._device, self._prop, None)
 
 
-class MideaGroup5BinarySensor(MideaBinarySensor, MideaGroup5Entity):
+class MideaGroupBinarySensor(MideaBinarySensor, MideaGroupEntity):
     """Binary sensor for Midea AC group 5 data."""
 
     def __init__(self,
+                 group: int,
                  *args,
                  **kwargs
                  ) -> None:
         MideaBinarySensor.__init__(self, *args, **kwargs)
+        MideaGroupEntity.__init__(self, group)
 
         # Group5 sensors start disabled in case device doesn't support them
         self._attr_entity_registry_enabled_default = False
